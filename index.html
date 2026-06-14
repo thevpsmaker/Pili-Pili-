@@ -1,0 +1,1221 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🌶️ Pili Pili</title>
+<link href="https://fonts.googleapis.com/css2?family=Righteous&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #1A1008;
+    --surface: #2A1A0E;
+    --surface2: #3A2415;
+    --orange: #FF6B1A;
+    --yellow: #FFD93D;
+    --red: #C0392B;
+    --cream: #FFF3E0;
+    --muted: #A07850;
+    --green: #27AE60;
+    --radius: 14px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--cream);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── PEPPER RAIN ── */
+  #pepper-bg {
+    position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden;
+  }
+  .pepper {
+    position: absolute; top: -60px; font-size: 1.4rem;
+    animation: fall linear infinite;
+    opacity: 0.18;
+  }
+  @keyframes fall {
+    to { transform: translateY(110vh) rotate(360deg); }
+  }
+
+  /* ── LAYOUT ── */
+  #app {
+    position: relative; z-index: 1;
+    max-width: 560px; margin: 0 auto;
+    padding: 24px 16px 80px;
+    min-height: 100vh;
+  }
+
+  /* ── LOGO ── */
+  .logo {
+    text-align: center; padding: 32px 0 24px;
+  }
+  .logo h1 {
+    font-family: 'Righteous', cursive;
+    font-size: 3.2rem; letter-spacing: 2px;
+    background: linear-gradient(135deg, var(--orange), var(--yellow));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .logo p { color: var(--muted); font-size: .9rem; margin-top: 4px; }
+
+  /* ── CARDS / PANELS ── */
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--surface2);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 16px;
+  }
+  .panel h2 {
+    font-family: 'Righteous', cursive;
+    font-size: 1.2rem; color: var(--orange);
+    margin-bottom: 16px;
+  }
+
+  /* ── INPUTS ── */
+  input[type="text"] {
+    width: 100%; padding: 12px 16px;
+    background: var(--bg); border: 1.5px solid var(--surface2);
+    border-radius: 10px; color: var(--cream);
+    font-size: 1rem; font-family: 'Inter', sans-serif;
+    outline: none; transition: border-color .2s;
+  }
+  input[type="text"]:focus { border-color: var(--orange); }
+  input[type="text"]::placeholder { color: var(--muted); }
+
+  /* ── BUTTONS ── */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 13px 24px; border-radius: 10px;
+    font-size: 1rem; font-weight: 600; font-family: 'Inter', sans-serif;
+    border: none; cursor: pointer; transition: transform .15s, opacity .15s;
+    width: 100%; margin-top: 10px;
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn-primary { background: linear-gradient(135deg, var(--orange), #E55A0D); color: #fff; }
+  .btn-secondary { background: var(--surface2); color: var(--cream); }
+  .btn-green { background: var(--green); color: #fff; }
+  .btn-red { background: var(--red); color: #fff; }
+  .btn-sm {
+    padding: 8px 16px; font-size: .85rem;
+    width: auto; margin-top: 0; border-radius: 8px;
+  }
+  .btn:disabled { opacity: .45; cursor: not-allowed; }
+
+  /* ── DIVIDER ── */
+  .or { text-align: center; color: var(--muted); font-size: .85rem; margin: 12px 0; }
+
+  /* ── SHARE BOX ── */
+  .share-box {
+    background: var(--bg); border: 1.5px dashed var(--orange);
+    border-radius: 10px; padding: 14px 16px;
+    display: flex; align-items: center; gap: 10px;
+    margin-top: 14px;
+  }
+  .share-box span { flex: 1; font-size: .8rem; color: var(--yellow); word-break: break-all; }
+  .share-box button { flex-shrink: 0; }
+
+  /* ── WAITING ── */
+  .waiting { text-align: center; padding: 24px 0; }
+  .waiting .spinner {
+    width: 48px; height: 48px; border: 4px solid var(--surface2);
+    border-top-color: var(--orange); border-radius: 50%;
+    animation: spin .8s linear infinite; margin: 0 auto 16px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── SCORE ROW ── */
+  .scores {
+    display: flex; gap: 12px; margin-bottom: 16px;
+  }
+  .score-card {
+    flex: 1; background: var(--surface2); border-radius: 12px;
+    padding: 14px; text-align: center;
+  }
+  .score-card .name { font-size: .75rem; color: var(--muted); margin-bottom: 4px; }
+  .score-card .pilis { font-family: 'Righteous', cursive; font-size: 2rem; color: var(--red); }
+  .score-card .pilis span { font-size: 1rem; }
+  .score-card.me { border: 1.5px solid var(--orange); }
+
+  /* ── MISSION BANNER ── */
+  .mission-banner {
+    background: linear-gradient(135deg, #3A1A00, #2A1008);
+    border: 1px solid var(--orange); border-radius: 12px;
+    padding: 12px 16px; margin-bottom: 14px;
+    font-size: .85rem; color: var(--yellow);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .mission-banner .icon { font-size: 1.4rem; flex-shrink: 0; }
+
+  /* ── ROUND INFO ── */
+  .round-info {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 12px;
+  }
+  .round-info .tag {
+    background: var(--surface2); border-radius: 20px;
+    padding: 4px 12px; font-size: .8rem; color: var(--muted);
+  }
+  .round-info .tag strong { color: var(--cream); }
+
+  /* ── BET PANEL ── */
+  .bet-panel { text-align: center; padding: 8px 0; }
+  .bet-panel p { color: var(--muted); font-size: .9rem; margin-bottom: 14px; }
+  .bet-options {
+    display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;
+    margin-bottom: 16px;
+  }
+  .bet-btn {
+    width: 52px; height: 52px; border-radius: 50%;
+    border: 2px solid var(--surface2);
+    background: var(--surface2); color: var(--cream);
+    font-size: 1.1rem; font-weight: 700; cursor: pointer;
+    transition: all .15s;
+  }
+  .bet-btn:hover, .bet-btn.selected {
+    background: var(--orange); border-color: var(--orange); color: #fff;
+    transform: scale(1.1);
+  }
+  .bet-btn:disabled { opacity: .35; cursor: not-allowed; transform: none; }
+
+  /* ── HAND ── */
+  .hand-title { font-size: .8rem; color: var(--muted); margin-bottom: 10px; }
+  .hand {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    justify-content: center; margin-bottom: 16px;
+  }
+  .card {
+    width: 58px; height: 82px; border-radius: 10px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    font-family: 'Righteous', cursive; font-size: 1.4rem; font-weight: 700;
+    border: 2px solid transparent;
+    cursor: pointer; transition: all .2s; user-select: none;
+    position: relative; box-shadow: 0 4px 12px rgba(0,0,0,.4);
+  }
+  .card .card-suit { font-size: .6rem; position: absolute; top: 5px; left: 6px; }
+  .card:hover:not(.card-played):not(.card-disabled) {
+    transform: translateY(-10px) rotate(-2deg);
+    border-color: var(--yellow);
+  }
+  .card.card-selected {
+    transform: translateY(-14px); border-color: var(--orange);
+    box-shadow: 0 0 20px rgba(255,107,26,.5);
+  }
+  .card.card-played { opacity: .4; cursor: default; }
+  .card.card-disabled { cursor: default; }
+
+  /* Card colors by value range */
+  .card-low { background: linear-gradient(145deg, #2C4A6E, #1A3050); color: #7EB8FF; }
+  .card-mid { background: linear-gradient(145deg, #4A2C6E, #2D1A50); color: #C87EFF; }
+  .card-high { background: linear-gradient(145deg, #6E2C2C, #501A1A); color: #FF7E7E; }
+  .card-top { background: linear-gradient(145deg, #6E5A1A, #503A00); color: var(--yellow); }
+
+  /* ── TABLE CENTER ── */
+  .table-center {
+    background: var(--surface2); border-radius: 16px;
+    padding: 18px; margin-bottom: 14px; min-height: 100px;
+  }
+  .table-center h3 { font-size: .8rem; color: var(--muted); margin-bottom: 12px; }
+  .played-cards {
+    display: flex; gap: 16px; justify-content: center; align-items: center;
+  }
+  .played-slot {
+    text-align: center;
+  }
+  .played-slot .player-label { font-size: .7rem; color: var(--muted); margin-bottom: 6px; }
+  .card-back {
+    width: 58px; height: 82px; border-radius: 10px;
+    background: repeating-linear-gradient(45deg, #2A1A0E 0, #2A1A0E 4px, #3A2415 4px, #3A2415 8px);
+    border: 2px solid var(--surface2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.4rem; color: var(--muted);
+  }
+
+  /* ── STATUS ── */
+  .status-bar {
+    text-align: center; padding: 10px;
+    font-size: .85rem; color: var(--yellow);
+    min-height: 36px;
+  }
+
+  /* ── TRICK RESULT ── */
+  .trick-result {
+    position: fixed; inset: 0; z-index: 100;
+    background: rgba(0,0,0,.75);
+    display: flex; align-items: center; justify-content: center;
+    animation: fadeIn .2s;
+  }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .trick-result-box {
+    background: var(--surface); border: 2px solid var(--orange);
+    border-radius: 20px; padding: 32px 40px; text-align: center;
+    animation: popIn .25s cubic-bezier(.34,1.56,.64,1);
+  }
+  @keyframes popIn { from { transform: scale(.7); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  .trick-result-box h2 { font-family: 'Righteous', cursive; font-size: 1.8rem; margin-bottom: 8px; }
+  .trick-result-box p { color: var(--muted); font-size: .9rem; }
+
+  /* ── ROUND END ── */
+  .round-end-overlay {
+    position: fixed; inset: 0; z-index: 200;
+    background: rgba(0,0,0,.85);
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px;
+  }
+  .round-end-box {
+    background: var(--surface); border-radius: 20px;
+    border: 2px solid var(--orange);
+    padding: 28px; width: 100%; max-width: 400px;
+    text-align: center;
+  }
+  .round-end-box h2 { font-family: 'Righteous', cursive; font-size: 1.5rem; color: var(--yellow); margin-bottom: 20px; }
+  .result-row {
+    display: flex; justify-content: space-between; align-items: center;
+    background: var(--surface2); border-radius: 10px;
+    padding: 12px 16px; margin-bottom: 10px;
+  }
+  .result-row .pname { font-weight: 600; }
+  .result-row .detail { font-size: .8rem; color: var(--muted); }
+  .pili-badge {
+    background: var(--red); color: #fff;
+    border-radius: 20px; padding: 3px 10px; font-size: .8rem; font-weight: 700;
+  }
+  .ok-badge {
+    background: var(--green); color: #fff;
+    border-radius: 20px; padding: 3px 10px; font-size: .8rem; font-weight: 700;
+  }
+
+  /* ── GAME OVER ── */
+  .game-over-overlay {
+    position: fixed; inset: 0; z-index: 300;
+    background: rgba(0,0,0,.92);
+    display: flex; align-items: center; justify-content: center; padding: 24px;
+  }
+  .game-over-box {
+    background: var(--surface); border-radius: 24px;
+    border: 2px solid var(--yellow);
+    padding: 36px; width: 100%; max-width: 400px; text-align: center;
+  }
+  .game-over-box .trophy { font-size: 4rem; margin-bottom: 12px; }
+  .game-over-box h2 { font-family: 'Righteous', cursive; font-size: 2rem; color: var(--yellow); margin-bottom: 6px; }
+  .game-over-box p { color: var(--muted); margin-bottom: 24px; }
+
+  /* ── TOAST ── */
+  #toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    background: var(--surface2); color: var(--cream);
+    padding: 10px 20px; border-radius: 20px; font-size: .85rem;
+    z-index: 999; opacity: 0; transition: opacity .3s;
+    pointer-events: none; white-space: nowrap;
+  }
+  #toast.show { opacity: 1; }
+
+  /* ── BETS DISPLAY ── */
+  .bets-display {
+    display: flex; gap: 10px; margin-bottom: 10px;
+  }
+  .bet-tag {
+    flex: 1; background: var(--surface2); border-radius: 8px;
+    padding: 8px; text-align: center; font-size: .8rem;
+  }
+  .bet-tag .bname { color: var(--muted); font-size: .7rem; margin-bottom: 2px; }
+  .bet-tag .bval { font-family: 'Righteous', cursive; font-size: 1.2rem; color: var(--yellow); }
+  .bet-tag .bval.hidden { color: var(--muted); font-size: .9rem; }
+
+  /* ── TRICKS COUNTER ── */
+  .tricks-display {
+    display: flex; gap: 10px; margin-bottom: 14px;
+  }
+  .trick-tag {
+    flex: 1; background: var(--surface2); border-radius: 8px;
+    padding: 8px; text-align: center; font-size: .8rem;
+  }
+  .trick-tag .tname { color: var(--muted); font-size: .7rem; }
+  .trick-tag .tval { font-weight: 700; font-size: 1.1rem; }
+
+  /* FIREBASE CONFIG SCREEN */
+  .config-note {
+    background: #0D1F12; border: 1px solid var(--green);
+    border-radius: 10px; padding: 14px; margin-bottom: 16px;
+    font-size: .8rem; line-height: 1.6;
+  }
+  .config-note code {
+    background: rgba(255,255,255,.1); border-radius: 4px;
+    padding: 1px 5px; font-family: monospace; font-size: .85rem;
+  }
+  .step-list { list-style: none; counter-reset: steps; }
+  .step-list li {
+    counter-increment: steps; padding: 6px 0 6px 28px; position: relative;
+    font-size: .82rem; color: var(--cream); opacity: .9;
+  }
+  .step-list li::before {
+    content: counter(steps);
+    position: absolute; left: 0; top: 6px;
+    width: 20px; height: 20px; background: var(--orange);
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-size: .7rem; font-weight: 700; color: #fff;
+    line-height: 20px; text-align: center;
+  }
+
+  /* misc */
+  .mt8 { margin-top: 8px; }
+  .center { text-align: center; }
+  .text-muted { color: var(--muted); font-size: .85rem; }
+  .gap8 { display: flex; flex-direction: column; gap: 8px; }
+  #firebase-screen .panel { animation: fadeIn .3s; }
+</style>
+</head>
+<body>
+
+<!-- Pepper rain -->
+<div id="pepper-bg"></div>
+
+<div id="app">
+  <div class="logo">
+    <h1>🌶️ PILI PILI</h1>
+    <p>Le jeu de plis pimenté</p>
+  </div>
+  <div id="screen"></div>
+</div>
+
+<div id="toast"></div>
+
+<!-- Firebase SDKs -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, set, get, onValue, update, off, remove }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+// ═══════════════════════════════════════════════
+//  FIREBASE CONFIG — remplace par ta config !
+// ═══════════════════════════════════════════════
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyDUw9JWEiwHz6tZYv_ljGiYP_FAoOIdc6I",
+  authDomain: "pili-pili-2704c.firebaseapp.com",
+  databaseURL: "https://pili-pili-2704c-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "pili-pili-2704c",
+  storageBucket: "pili-pili-2704c.firebasestorage.app",
+  messagingSenderId: "967350216514",
+  appId: "1:967350216514:web:4f2769dfcdb17cc8ffcadb",
+  measurementId: "G-ZX7J83LL9Y"
+};
+
+// ─── Check if config is filled ───
+const needsConfig = Object.values(FIREBASE_CONFIG).some(v => v.startsWith("REPLACE_"));
+
+// ═══════════════════════════════════════════════
+//  PEPPER RAIN
+// ═══════════════════════════════════════════════
+function initPeppers() {
+  const bg = document.getElementById('pepper-bg');
+  const emojis = ['🌶️','🫑','🌿'];
+  for (let i = 0; i < 18; i++) {
+    const p = document.createElement('div');
+    p.className = 'pepper';
+    p.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+    p.style.left = Math.random() * 100 + 'vw';
+    p.style.animationDuration = (6 + Math.random() * 10) + 's';
+    p.style.animationDelay = (-Math.random() * 12) + 's';
+    p.style.fontSize = (.8 + Math.random() * 1.2) + 'rem';
+    bg.appendChild(p);
+  }
+}
+initPeppers();
+
+// ═══════════════════════════════════════════════
+//  TOAST
+// ═══════════════════════════════════════════════
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ═══════════════════════════════════════════════
+//  GAME LOGIC
+// ═══════════════════════════════════════════════
+const MAX_PILIS = 7;
+
+function createDeck() {
+  const deck = [];
+  for (let i = 1; i <= 55; i++) deck.push(i);
+  return shuffle(deck);
+}
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function cardClass(n) {
+  if (n <= 14) return 'card-low';
+  if (n <= 28) return 'card-mid';
+  if (n <= 42) return 'card-high';
+  return 'card-top';
+}
+
+const MISSIONS = [
+  { id: 'normal', label: 'Manche classique', desc: 'Remportez exactement le nombre de plis pariés.', icon: '🎯' },
+  { id: 'no_tricks', label: 'Zéro pli', desc: 'Tout le monde parie 0. Impossible de parier autre chose !', icon: '🚫' },
+  { id: 'blind', label: 'Paris à l\'aveugle', desc: 'Les paris adverses sont cachés jusqu\'à la fin.', icon: '🙈' },
+  { id: 'double', label: 'Double ou rien', desc: 'Les Pilis sont doublés cette manche !', icon: '💥' },
+  { id: 'last_card', label: 'Dernier pli maudit', desc: 'Gagner le dernier pli vous donne 1 Pili bonus.', icon: '👹' },
+];
+
+function getMission(round) {
+  if (round === 1) return MISSIONS[0];
+  const pool = MISSIONS.slice(1);
+  return pool[(round - 1) % pool.length];
+}
+
+function cardsPerRound(round) {
+  // rounds: 1→2, 2→3 ... 6→7, 7→6 ... 12→2
+  if (round <= 6) return round + 1;
+  return 13 - round;
+}
+
+function totalRounds() { return 12; }
+
+// ═══════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════
+let db, gameRef, stateListener;
+let myId = null;       // 'p1' | 'p2'
+let roomId = null;
+let localState = null; // mirror of firebase state
+let selectedCard = null;
+
+// ═══════════════════════════════════════════════
+//  RENDER ROUTER
+// ═══════════════════════════════════════════════
+const screen = document.getElementById('screen');
+function render(html) { screen.innerHTML = html; }
+
+// ═══════════════════════════════════════════════
+//  SCREEN: FIREBASE CONFIG NEEDED
+// ═══════════════════════════════════════════════
+function showConfigScreen() {
+  render(`
+    <div id="firebase-screen">
+      <div class="panel">
+        <h2>⚙️ Configuration Firebase requise</h2>
+        <p class="text-muted" style="margin-bottom:14px">Pour jouer en ligne (GitHub Pages), tu dois connecter une base de données Firebase gratuite. Ça prend 3 minutes !</p>
+        <ol class="step-list">
+          <li>Va sur <strong>console.firebase.google.com</strong> et crée un projet</li>
+          <li>Active <strong>Realtime Database</strong> (mode test, région europe-west1)</li>
+          <li>Dans les règles, remplace par : <code>{ "rules": { ".read": true, ".write": true } }</code></li>
+          <li>Clique sur l'icône ⚙️ > <strong>Paramètres du projet</strong> > <strong>Tes applications</strong> > ajoute une app Web</li>
+          <li>Copie la config <code>firebaseConfig</code> et remplace les valeurs <code>REPLACE_*</code> dans ce fichier HTML</li>
+          <li>Déploie sur GitHub Pages — et c'est parti ! 🌶️</li>
+        </ol>
+        <div class="config-note mt8">
+          <strong style="color:var(--yellow)">Règles de sécurité recommandées pour la prod :</strong><br>
+          Les règles "mode test" expirent après 30 jours. Ajoute des règles basées sur le roomId si tu veux prolonger.
+        </div>
+      </div>
+    </div>
+  `);
+}
+
+// ═══════════════════════════════════════════════
+//  SCREEN: LOBBY
+// ═══════════════════════════════════════════════
+function showLobby() {
+  // Check URL for room
+  const hash = window.location.hash.slice(1);
+  if (hash && hash.startsWith('room-')) {
+    joinRoom(hash.replace('room-', ''));
+    return;
+  }
+
+  render(`
+    <div class="panel">
+      <h2>🏠 Créer une partie</h2>
+      <input type="text" id="name1" placeholder="Ton prénom" maxlength="16">
+      <button class="btn btn-primary" onclick="window.createRoom()">Créer le salon 🌶️</button>
+    </div>
+    <div class="or">— ou —</div>
+    <div class="panel">
+      <h2>🔗 Rejoindre une partie</h2>
+      <input type="text" id="join-name" placeholder="Ton prénom" maxlength="16">
+      <input type="text" id="room-code" placeholder="Code du salon (ex: ABC123)" maxlength="8" style="margin-top:8px;text-transform:uppercase">
+      <button class="btn btn-secondary" onclick="window.joinByCode()">Rejoindre</button>
+    </div>
+  `);
+}
+
+// ═══════════════════════════════════════════════
+//  CREATE ROOM
+// ═══════════════════════════════════════════════
+window.createRoom = async function() {
+  const name = document.getElementById('name1').value.trim();
+  if (!name) { showToast('Entre ton prénom !'); return; }
+
+  roomId = Math.random().toString(36).slice(2, 8).toUpperCase();
+  myId = 'p1';
+
+  const initialState = {
+    phase: 'waiting',
+    p1: { name, pilis: 0 },
+    p2: null,
+    round: 0,
+    created: Date.now()
+  };
+
+  await set(ref(db, `rooms/${roomId}`), initialState);
+  window.location.hash = 'room-' + roomId;
+  showWaiting(name);
+  listenRoom();
+};
+
+// ═══════════════════════════════════════════════
+//  JOIN ROOM
+// ═══════════════════════════════════════════════
+async function joinRoom(code) {
+  render(`<div class="waiting"><div class="spinner"></div><p>Connexion au salon...</p></div>`);
+  roomId = code.toUpperCase();
+  const snap = await get(ref(db, `rooms/${roomId}`));
+  if (!snap.exists()) {
+    showToast('Salon introuvable !');
+    window.location.hash = '';
+    showLobby();
+    return;
+  }
+  const state = snap.val();
+  if (state.p2) {
+    showToast('Salon complet !');
+    window.location.hash = '';
+    showLobby();
+    return;
+  }
+
+  // Ask name
+  render(`
+    <div class="panel">
+      <h2>🔗 Rejoindre ${state.p1.name}</h2>
+      <input type="text" id="join-name2" placeholder="Ton prénom" maxlength="16">
+      <button class="btn btn-primary" onclick="window.confirmJoin()">Rejoindre la partie 🌶️</button>
+    </div>
+  `);
+};
+
+window.joinByCode = function() {
+  const name = document.getElementById('join-name').value.trim();
+  const code = document.getElementById('room-code').value.trim().toUpperCase();
+  if (!name || !code) { showToast('Remplis tous les champs !'); return; }
+  myId = 'p2';
+  window._pendingName = name;
+  joinRoom(code);
+};
+
+window.confirmJoin = async function() {
+  const nameEl = document.getElementById('join-name2');
+  const name = (nameEl ? nameEl.value : window._pendingName || '').trim();
+  if (!name) { showToast('Entre ton prénom !'); return; }
+  myId = 'p2';
+
+  await update(ref(db, `rooms/${roomId}`), { 'p2': { name, pilis: 0 } });
+  listenRoom();
+};
+
+// ═══════════════════════════════════════════════
+//  WAITING SCREEN
+// ═══════════════════════════════════════════════
+function showWaiting(myName) {
+  const link = window.location.href.split('#')[0] + '#room-' + roomId;
+  render(`
+    <div class="panel">
+      <h2>⏳ En attente de ton adversaire…</h2>
+      <div class="waiting">
+        <div class="spinner"></div>
+        <p>Partage ce lien à ta copine :</p>
+      </div>
+      <div class="share-box">
+        <span id="share-url">${link}</span>
+        <button class="btn btn-sm btn-primary" onclick="window.copyLink()">Copier</button>
+      </div>
+      <div class="or" style="margin-top:14px">— ou donne ce code —</div>
+      <div style="text-align:center;padding:12px">
+        <span style="font-family:'Righteous',cursive;font-size:2.5rem;color:var(--yellow);letter-spacing:4px">${roomId}</span>
+      </div>
+    </div>
+  `);
+}
+
+window.copyLink = function() {
+  const link = window.location.href.split('#')[0] + '#room-' + roomId;
+  navigator.clipboard.writeText(link).then(() => showToast('Lien copié ! 🌶️'));
+};
+
+// ═══════════════════════════════════════════════
+//  LISTEN ROOM
+// ═══════════════════════════════════════════════
+function listenRoom() {
+  if (stateListener) off(ref(db, `rooms/${roomId}`), 'value', stateListener);
+  gameRef = ref(db, `rooms/${roomId}`);
+  stateListener = onValue(gameRef, snap => {
+    if (!snap.exists()) return;
+    localState = snap.val();
+    handleStateChange(localState);
+  });
+}
+
+function handleStateChange(state) {
+  if (state.phase === 'waiting') {
+    if (myId === 'p1') {
+      if (state.p2) {
+        // Both players present — p1 starts the game
+        startGame(state);
+      } else {
+        showWaiting(state.p1.name);
+      }
+    } else {
+      // p2 is waiting for p1 to start
+      render(`<div class="waiting"><div class="spinner"></div><p>En attente du démarrage…</p></div>`);
+    }
+    return;
+  }
+  if (state.phase === 'playing') {
+    renderGame(state);
+    return;
+  }
+  if (state.phase === 'game_over') {
+    renderGameOver(state);
+    return;
+  }
+}
+
+// ═══════════════════════════════════════════════
+//  START GAME (only p1 does this)
+// ═══════════════════════════════════════════════
+async function startGame(state) {
+  if (myId !== 'p1') return;
+  const deck = createDeck();
+  const nCards = cardsPerRound(1);
+  const mission = getMission(1);
+  const hand1 = deck.slice(0, nCards);
+  const hand2 = deck.slice(nCards, nCards * 2);
+
+  const gameState = {
+    ...state,
+    phase: 'playing',
+    round: 1,
+    trick: 1,
+    mission: mission.id,
+    hands: { p1: hand1, p2: hand2 },
+    bets: { p1: null, p2: null },
+    tricks: { p1: 0, p2: 0 },
+    played: { p1: null, p2: null },
+    trickHistory: [],
+    betsDone: false,
+    trickLeader: null,
+    roundSummary: null,
+  };
+
+  await set(ref(db, `rooms/${roomId}`), gameState);
+}
+
+// ═══════════════════════════════════════════════
+//  RENDER GAME
+// ═══════════════════════════════════════════════
+function renderGame(state) {
+  const me = state[myId];
+  const oppId = myId === 'p1' ? 'p2' : 'p1';
+  const opp = state[oppId];
+  const mission = MISSIONS.find(m => m.id === state.mission) || MISSIONS[0];
+  const myHand = state.hands ? (state.hands[myId] || []) : [];
+  const myBet = state.bets ? state.bets[myId] : null;
+  const oppBet = state.bets ? state.bets[oppId] : null;
+  const myTricks = state.tricks ? (state.tricks[myId] || 0) : 0;
+  const oppTricks = state.tricks ? (state.tricks[oppId] || 0) : 0;
+  const myPlayed = state.played ? state.played[myId] : null;
+  const oppPlayed = state.played ? state.played[oppId] : null;
+  const nCards = cardsPerRound(state.round);
+  const betsDone = state.betsDone;
+  const showOppBet = state.mission !== 'blind' || betsDone;
+
+  // Phase bets
+  const bettingPhase = !betsDone;
+  const myTurn = bettingPhase ? myBet === null : (myPlayed === null && myBet !== null);
+
+  let statusMsg = '';
+  if (bettingPhase) {
+    if (myBet === null) statusMsg = '📝 À toi de parier !';
+    else statusMsg = '⏳ En attente du pari adverse…';
+  } else {
+    if (myPlayed === null) statusMsg = '🃏 À toi de jouer une carte !';
+    else if (oppPlayed === null) statusMsg = '⏳ En attente de la carte adverse…';
+    else statusMsg = '🔄 Résolution du pli…';
+  }
+
+  const html = `
+    <!-- Scores -->
+    <div class="scores">
+      <div class="score-card me">
+        <div class="name">🫵 ${me.name}</div>
+        <div class="pilis">${me.pilis}<span> 🌶️</span></div>
+      </div>
+      <div class="score-card">
+        <div class="name">👤 ${opp.name}</div>
+        <div class="pilis">${opp.pilis}<span> 🌶️</span></div>
+      </div>
+    </div>
+
+    <!-- Mission -->
+    <div class="mission-banner">
+      <span class="icon">${mission.icon}</span>
+      <div><strong>${mission.label}</strong><br><small>${mission.desc}</small></div>
+    </div>
+
+    <!-- Round info -->
+    <div class="round-info">
+      <span class="tag">Manche <strong>${state.round}</strong>/${totalRounds()}</span>
+      <span class="tag">Pli <strong>${state.trick}</strong>/${nCards}</span>
+      <span class="tag">${nCards} cartes</span>
+    </div>
+
+    ${betsDone ? `
+    <!-- Bets + Tricks -->
+    <div class="bets-display">
+      <div class="bet-tag">
+        <div class="bname">🫵 ${me.name} — Paris</div>
+        <div class="bval">${myBet !== null ? myBet : '?'}</div>
+      </div>
+      <div class="bet-tag">
+        <div class="bname">👤 ${opp.name} — Paris</div>
+        <div class="bval ${showOppBet ? '' : 'hidden'}">${showOppBet ? (oppBet !== null ? oppBet : '?') : '🙈 caché'}</div>
+      </div>
+    </div>
+    <div class="tricks-display">
+      <div class="trick-tag">
+        <div class="tname">Plis remportés</div>
+        <div class="tval" style="color:var(--orange)">${myTricks}</div>
+      </div>
+      <div class="trick-tag">
+        <div class="tname">Plis adversaire</div>
+        <div class="tval" style="color:var(--muted)">${oppTricks}</div>
+      </div>
+    </div>` : ''}
+
+    <!-- Table center -->
+    <div class="table-center">
+      <h3>🃏 Cartes jouées</h3>
+      <div class="played-cards">
+        <div class="played-slot">
+          <div class="player-label">🫵 ${me.name}</div>
+          ${myPlayed !== null
+            ? `<div class="card ${cardClass(myPlayed)}">${myPlayed}</div>`
+            : `<div class="card-back">?</div>`}
+        </div>
+        <div class="played-slot">
+          <div class="player-label">👤 ${opp.name}</div>
+          ${oppPlayed !== null
+            ? `<div class="card ${cardClass(oppPlayed)}">${oppPlayed}</div>`
+            : `<div class="card-back">?</div>`}
+        </div>
+      </div>
+    </div>
+
+    <!-- Status -->
+    <div class="status-bar">${statusMsg}</div>
+
+    <!-- Betting phase -->
+    ${bettingPhase ? renderBetPanel(state, myBet, nCards) : ''}
+
+    <!-- Play phase -->
+    ${!bettingPhase ? renderHandPanel(myHand, myPlayed !== null) : ''}
+
+    ${state.roundSummary ? renderRoundSummary(state) : ''}
+  `;
+
+  render(html);
+
+  // If both cards played — auto resolve after brief delay (only p1 resolves)
+  if (!bettingPhase && myPlayed !== null && oppPlayed !== null && !state.resolving) {
+    if (myId === 'p1') {
+      setTimeout(() => resolveTrick(state), 1200);
+    }
+  }
+}
+
+function renderBetPanel(state, myBet, nCards) {
+  if (myBet !== null) return `<div class="bet-panel"><p>✅ Pari enregistré : <strong>${myBet}</strong> pli(s)</p></div>`;
+
+  const mission = state.mission;
+  const oppId = myId === 'p1' ? 'p2' : 'p1';
+  const oppBet = state.bets ? state.bets[oppId] : null;
+
+  // Forbidden bet (total can't equal nCards — "pour qu'il y ait toujours un perdant")
+  let forbidden = -1;
+  if (oppBet !== null) {
+    const forbidVal = nCards - oppBet;
+    if (forbidVal >= 0 && forbidVal <= nCards) forbidden = forbidVal;
+  }
+
+  if (mission === 'no_tricks') {
+    return `
+      <div class="bet-panel">
+        <p>🚫 Mission Zéro pli — tu paries forcément 0 !</p>
+        <button class="btn btn-primary" onclick="window.placeBet(0)">Confirmer pari 0</button>
+      </div>`;
+  }
+
+  let btns = '';
+  for (let i = 0; i <= nCards; i++) {
+    const disabled = i === forbidden ? 'disabled title="Pari interdit !"' : '';
+    btns += `<button class="bet-btn ${disabled}" onclick="window.selectBet(${i})" id="bet-opt-${i}" ${disabled}>${i}</button>`;
+  }
+
+  return `
+    <div class="bet-panel">
+      <p>Combien de plis vas-tu remporter ?${forbidden >= 0 ? ` <span style="color:var(--red)">(${forbidden} interdit)</span>` : ''}</p>
+      <div class="bet-options">${btns}</div>
+      <button class="btn btn-primary" id="confirm-bet-btn" disabled onclick="window.confirmBet()">Confirmer mon pari</button>
+    </div>`;
+}
+
+let pendingBet = null;
+window.selectBet = function(n) {
+  pendingBet = n;
+  document.querySelectorAll('.bet-btn').forEach(b => b.classList.remove('selected'));
+  const el = document.getElementById('bet-opt-' + n);
+  if (el) el.classList.add('selected');
+  const confirmBtn = document.getElementById('confirm-bet-btn');
+  if (confirmBtn) confirmBtn.disabled = false;
+};
+window.placeBet = async function(n) {
+  await update(ref(db, `rooms/${roomId}/bets`), { [myId]: n });
+};
+window.confirmBet = async function() {
+  if (pendingBet === null) return;
+  await window.placeBet(pendingBet);
+  pendingBet = null;
+};
+
+// Watch for both bets done (p1 triggers)
+function checkBetsDone(state) {
+  if (myId !== 'p1') return;
+  if (state.betsDone) return;
+  const b = state.bets;
+  if (b && b.p1 !== null && b.p2 !== null) {
+    update(ref(db, `rooms/${roomId}`), { betsDone: true });
+  }
+}
+
+function renderHandPanel(hand, played) {
+  if (played) return `<div class="bet-panel"><p>⏳ Carte jouée, en attente de l'adversaire…</p></div>`;
+  if (!hand || hand.length === 0) return '';
+
+  const cards = hand.map(n =>
+    `<div class="card ${cardClass(n)}" onclick="window.selectCard(${n})" id="card-${n}">
+      <span class="card-suit">🌶️</span>${n}
+    </div>`
+  ).join('');
+
+  return `
+    <div>
+      <div class="hand-title">Ta main (${hand.length} cartes) — clique pour sélectionner :</div>
+      <div class="hand">${cards}</div>
+      <button class="btn btn-primary" id="play-card-btn" disabled onclick="window.playCard()">Jouer cette carte</button>
+    </div>`;
+}
+
+window.selectCard = function(n) {
+  selectedCard = n;
+  document.querySelectorAll('.card').forEach(c => c.classList.remove('card-selected'));
+  const el = document.getElementById('card-' + n);
+  if (el) el.classList.add('card-selected');
+  const btn = document.getElementById('play-card-btn');
+  if (btn) btn.disabled = false;
+};
+
+window.playCard = async function() {
+  if (selectedCard === null) return;
+  const hand = localState.hands[myId].filter(c => c !== selectedCard);
+  await update(ref(db, `rooms/${roomId}`), {
+    [`played/${myId}`]: selectedCard,
+    [`hands/${myId}`]: hand,
+  });
+  selectedCard = null;
+};
+
+// ═══════════════════════════════════════════════
+//  RESOLVE TRICK (p1 only)
+// ═══════════════════════════════════════════════
+async function resolveTrick(state) {
+  // Mark resolving to avoid double call
+  const snap = await get(ref(db, `rooms/${roomId}/resolving`));
+  if (snap.val()) return;
+  await update(ref(db, `rooms/${roomId}`), { resolving: true });
+
+  const p1Played = state.played.p1;
+  const p2Played = state.played.p2;
+  const winner = p1Played > p2Played ? 'p1' : 'p2';
+
+  const newTricks = {
+    p1: (state.tricks.p1 || 0) + (winner === 'p1' ? 1 : 0),
+    p2: (state.tricks.p2 || 0) + (winner === 'p2' ? 1 : 0),
+  };
+
+  const nCards = cardsPerRound(state.round);
+  const isLastTrick = state.trick >= nCards;
+
+  const trickHistory = [...(state.trickHistory || []), { p1: p1Played, p2: p2Played, winner }];
+
+  if (isLastTrick) {
+    // End of round
+    const summary = computeRoundSummary(state, newTricks);
+    const newPilis = {
+      p1: (state.p1.pilis || 0) + summary.p1.pilis,
+      p2: (state.p2.pilis || 0) + summary.p2.pilis,
+    };
+
+    // Check game over
+    const gameOver = newPilis.p1 >= MAX_PILIS || newPilis.p2 >= MAX_PILIS;
+    if (gameOver) {
+      const winner_id = newPilis.p1 < newPilis.p2 ? 'p1' : (newPilis.p2 < newPilis.p1 ? 'p2' : 'draw');
+      await update(ref(db, `rooms/${roomId}`), {
+        tricks: newTricks,
+        played: { p1: null, p2: null },
+        trickHistory,
+        resolving: false,
+        roundSummary: summary,
+        'p1/pilis': newPilis.p1,
+        'p2/pilis': newPilis.p2,
+        phase: 'game_over',
+        gameWinner: winner_id,
+      });
+      return;
+    }
+
+    // Next round
+    const nextRound = state.round + 1;
+    const nextMission = getMission(nextRound);
+    const deck = createDeck();
+    const nc = cardsPerRound(nextRound);
+    await update(ref(db, `rooms/${roomId}`), {
+      tricks: newTricks,
+      played: { p1: null, p2: null },
+      trickHistory,
+      resolving: false,
+      roundSummary: summary,
+      'p1/pilis': newPilis.p1,
+      'p2/pilis': newPilis.p2,
+      _nextRound: { round: nextRound, mission: nextMission.id, hand1: deck.slice(0, nc), hand2: deck.slice(nc, nc * 2) }
+    });
+  } else {
+    // Next trick
+    await update(ref(db, `rooms/${roomId}`), {
+      tricks: newTricks,
+      played: { p1: null, p2: null },
+      trick: state.trick + 1,
+      trickHistory,
+      trickWinner: winner,
+      resolving: false,
+    });
+    // Show trick winner briefly
+    showTrickWinnerPopup(winner, state);
+    setTimeout(() => update(ref(db, `rooms/${roomId}`), { trickWinner: null }), 1500);
+  }
+}
+
+function showTrickWinnerPopup(winner, state) {
+  const name = winner === myId ? state[myId].name : state[winner === 'p1' ? 'p1' : 'p2'].name;
+  const isMe = winner === myId;
+  const div = document.createElement('div');
+  div.className = 'trick-result';
+  div.innerHTML = `
+    <div class="trick-result-box">
+      <h2>${isMe ? '🎉 Tu remportes' : `😅 ${name} remporte`}</h2>
+      <p>ce pli !</p>
+    </div>`;
+  document.body.appendChild(div);
+  setTimeout(() => div.remove(), 1400);
+}
+
+function computeRoundSummary(state, finalTricks) {
+  const mission = state.mission;
+  const multiplier = mission === 'double' ? 2 : 1;
+  const lastTrickPenalty = mission === 'last_card';
+
+  function calcPili(id, oppId) {
+    const bet = state.bets[id];
+    const got = finalTricks[id];
+    let pili = Math.abs(bet - got) * multiplier;
+    // last card penalty: if they won the last trick
+    if (lastTrickPenalty) {
+      const hist = state.trickHistory || [];
+      if (hist.length > 0 && hist[hist.length - 1].winner === id) pili += 1;
+    }
+    return pili;
+  }
+
+  return {
+    p1: { bet: state.bets.p1, got: finalTricks.p1, pilis: calcPili('p1', 'p2') },
+    p2: { bet: state.bets.p2, got: finalTricks.p2, pilis: calcPili('p2', 'p1') },
+  };
+}
+
+// ═══════════════════════════════════════════════
+//  ROUND SUMMARY OVERLAY
+// ═══════════════════════════════════════════════
+function renderRoundSummary(state) {
+  if (!state.roundSummary) return '';
+  const s = state.roundSummary;
+  const oppId = myId === 'p1' ? 'p2' : 'p1';
+
+  const isNextReady = !!state._nextRound;
+  const btnLabel = isNextReady ? 'Manche suivante →' : 'Fin de partie';
+
+  return `
+    <div class="round-end-overlay">
+      <div class="round-end-box">
+        <h2>🌶️ Fin de la manche ${state.round}</h2>
+        ${renderResultRow(state[myId].name, s[myId], true)}
+        ${renderResultRow(state[oppId].name, s[oppId], false)}
+        ${myId === 'p1' && isNextReady ? `<button class="btn btn-primary" style="margin-top:16px" onclick="window.nextRound()">Manche suivante →</button>` : ''}
+        ${myId !== 'p1' ? `<p class="text-muted" style="margin-top:16px">⏳ En attente du joueur 1…</p>` : ''}
+      </div>
+    </div>`;
+}
+
+function renderResultRow(name, data, isMe) {
+  const ok = data.pilis === 0;
+  return `
+    <div class="result-row">
+      <div>
+        <div class="pname">${isMe ? '🫵 ' : '👤 '}${name}</div>
+        <div class="detail">Pari : ${data.bet} | Plis : ${data.got}</div>
+      </div>
+      <span class="${ok ? 'ok-badge' : 'pili-badge'}">${ok ? '✅ Parfait' : `+${data.pilis} 🌶️`}</span>
+    </div>`;
+}
+
+window.nextRound = async function() {
+  if (myId !== 'p1') return;
+  const nr = localState._nextRound;
+  if (!nr) return;
+  await update(ref(db, `rooms/${roomId}`), {
+    round: nr.round,
+    trick: 1,
+    mission: nr.mission,
+    'hands/p1': nr.hand1,
+    'hands/p2': nr.hand2,
+    bets: { p1: null, p2: null },
+    tricks: { p1: 0, p2: 0 },
+    played: { p1: null, p2: null },
+    trickHistory: [],
+    betsDone: false,
+    trickLeader: null,
+    trickWinner: null,
+    roundSummary: null,
+    _nextRound: null,
+    resolving: false,
+  });
+};
+
+// ═══════════════════════════════════════════════
+//  GAME OVER
+// ═══════════════════════════════════════════════
+function renderGameOver(state) {
+  const winner = state.gameWinner;
+  const isWinner = winner === myId;
+  const isDraw = winner === 'draw';
+  const winnerName = isDraw ? '' : state[winner].name;
+  const isMe = winner === myId;
+
+  render(`
+    <div class="game-over-overlay">
+      <div class="game-over-box">
+        <div class="trophy">${isDraw ? '🤝' : isMe ? '🏆' : '💀'}</div>
+        <h2>${isDraw ? 'Égalité !' : isMe ? 'Victoire !' : 'Défaite !'}</h2>
+        <p>${isDraw ? 'Match nul, la revanche s\'impose !' : isMe ? `Félicitations ${state[myId].name} 🌶️` : `${winnerName} remporte la partie !`}</p>
+        <div class="scores" style="margin:20px 0">
+          <div class="score-card ${myId === 'p1' ? 'me' : ''}">
+            <div class="name">${state.p1.name}</div>
+            <div class="pilis">${state.p1.pilis}<span> 🌶️</span></div>
+          </div>
+          <div class="score-card ${myId === 'p2' ? 'me' : ''}">
+            <div class="name">${state.p2.name}</div>
+            <div class="pilis">${state.p2.pilis}<span> 🌶️</span></div>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="window.playAgain()">Rejouer 🌶️</button>
+        <button class="btn btn-secondary" onclick="window.goHome()" style="margin-top:8px">Accueil</button>
+      </div>
+    </div>
+  `);
+}
+
+window.playAgain = async function() {
+  if (myId !== 'p1') { showToast('Seul le joueur 1 peut relancer !'); return; }
+  const p1name = localState.p1.name;
+  const p2name = localState.p2.name;
+  await set(ref(db, `rooms/${roomId}`), {
+    phase: 'waiting',
+    p1: { name: p1name, pilis: 0 },
+    p2: { name: p2name, pilis: 0 },
+    round: 0,
+    created: Date.now()
+  });
+  startGame({ phase: 'waiting', p1: { name: p1name, pilis: 0 }, p2: { name: p2name, pilis: 0 }, round: 0 });
+};
+
+window.goHome = function() {
+  if (stateListener) off(gameRef, 'value', stateListener);
+  window.location.hash = '';
+  roomId = null; myId = null; localState = null;
+  showLobby();
+};
+
+// ═══════════════════════════════════════════════
+//  FIREBASE WATCHERS: bets done + next round
+// ═══════════════════════════════════════════════
+// Intercept state changes for side effects
+const _origHandle = handleStateChange;
+function handleStateChange(state) {
+  _origHandle(state);
+  // Check bets done
+  if (state.phase === 'playing' && !state.betsDone && state.bets) {
+    checkBetsDone(state);
+  }
+}
+
+// ═══════════════════════════════════════════════
+//  BOOT
+// ═══════════════════════════════════════════════
+async function boot() {
+  if (needsConfig) {
+    showConfigScreen();
+    return;
+  }
+
+  const app = initializeApp(FIREBASE_CONFIG);
+  db = getDatabase(app);
+
+  const hash = window.location.hash.slice(1);
+  if (hash && hash.startsWith('room-')) {
+    myId = 'p2';
+    await joinRoom(hash.replace('room-', ''));
+    listenRoom();
+  } else {
+    showLobby();
+  }
+}
+
+boot();
+</script>
+</body>
+</html>
