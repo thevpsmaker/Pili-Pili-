@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🌶️ Pili Pili</title>
+<link href="https://fonts.googleapis.com/css2?family=Righteous&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#1A1008; --surface:#2A1A0E; --surface2:#3A2415;
+  --orange:#FF6B1A; --yellow:#FFD93D; --red:#C0392B;
+  --cream:#FFF3E0; --muted:#A07850; --green:#27AE60;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--cream);font-family:'Inter',sans-serif;min-height:100vh;overflow-x:hidden}
+#pepper-bg{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.pepper{position:absolute;top:-60px;animation:fall linear infinite;opacity:.15}
+@keyframes fall{to{transform:translateY(110vh) rotate(360deg)}}
+#app{position:relative;z-index:1;max-width:540px;margin:0 auto;padding:20px 16px 80px;min-height:100vh}
+.logo{text-align:center;padding:28px 0 20px}
+.logo h1{font-family:'Righteous',cursive;font-size:3rem;letter-spacing:2px;background:linear-gradient(135deg,var(--orange),var(--yellow));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.logo p{color:var(--muted);font-size:.9rem;margin-top:4px}
+.panel{background:var(--surface);border:1px solid var(--surface2);border-radius:14px;padding:22px;margin-bottom:14px}
+.panel h2{font-family:'Righteous',cursive;font-size:1.15rem;color:var(--orange);margin-bottom:14px}
+input[type=text]{width:100%;padding:12px 16px;background:var(--bg);border:1.5px solid var(--surface2);border-radius:10px;color:var(--cream);font-size:1rem;font-family:'Inter',sans-serif;outline:none;transition:border-color .2s;margin-top:6px}
+input[type=text]:focus{border-color:var(--orange)}
+input[type=text]::placeholder{color:var(--muted)}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;padding:13px 20px;border-radius:10px;font-size:1rem;font-weight:600;font-family:'Inter',sans-serif;border:none;cursor:pointer;transition:transform .12s,opacity .12s;width:100%;margin-top:10px;-webkit-tap-highlight-color:transparent}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:linear-gradient(135deg,var(--orange),#D94F09);color:#fff}
+.btn-secondary{background:var(--surface2);color:var(--cream)}
+.btn-sm{padding:8px 14px;font-size:.85rem;width:auto;margin-top:0;border-radius:8px}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.or{text-align:center;color:var(--muted);font-size:.85rem;margin:10px 0}
+.share-box{background:var(--bg);border:1.5px dashed var(--orange);border-radius:10px;padding:14px;display:flex;align-items:center;gap:10px;margin-top:12px}
+.share-box span{flex:1;font-size:.78rem;color:var(--yellow);word-break:break-all}
+.spinner{width:44px;height:44px;border:4px solid var(--surface2);border-top-color:var(--orange);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 14px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.wait-box{text-align:center;padding:20px 0}
+.scores{display:flex;gap:10px;margin-bottom:14px}
+.score-card{flex:1;background:var(--surface2);border-radius:12px;padding:12px;text-align:center}
+.score-card .sname{font-size:.72rem;color:var(--muted);margin-bottom:2px}
+.score-card .spilis{font-family:'Righteous',cursive;font-size:1.9rem;color:var(--red)}
+.score-card.me{border:1.5px solid var(--orange)}
+.mission-banner{background:linear-gradient(135deg,#3A1A00,#2A1008);border:1px solid var(--orange);border-radius:12px;padding:10px 14px;margin-bottom:12px;font-size:.83rem;color:var(--yellow);display:flex;align-items:center;gap:10px}
+.mission-banner .micon{font-size:1.3rem;flex-shrink:0}
+.round-info{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:6px}
+.tag{background:var(--surface2);border-radius:20px;padding:4px 10px;font-size:.75rem;color:var(--muted)}
+.tag strong{color:var(--cream)}
+.bet-section{text-align:center;padding:6px 0}
+.bet-section p{color:var(--muted);font-size:.88rem;margin-bottom:12px}
+.bet-options{display:flex;flex-wrap:wrap;gap:9px;justify-content:center;margin-bottom:14px}
+.bet-btn{width:50px;height:50px;border-radius:50%;border:2px solid var(--surface2);background:var(--surface2);color:var(--cream);font-size:1.05rem;font-weight:700;cursor:pointer;transition:all .15s;-webkit-tap-highlight-color:transparent}
+.bet-btn.selected,.bet-btn:active{background:var(--orange);border-color:var(--orange);color:#fff;transform:scale(1.1)}
+.bet-btn:disabled{opacity:.3;cursor:not-allowed;transform:none}
+.hand-label{font-size:.78rem;color:var(--muted);margin-bottom:8px;text-align:center}
+.hand{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;margin-bottom:14px}
+.card{width:56px;height:80px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'Righteous',cursive;font-size:1.35rem;border:2px solid transparent;cursor:pointer;transition:all .18s;user-select:none;position:relative;box-shadow:0 3px 10px rgba(0,0,0,.45);-webkit-tap-highlight-color:transparent}
+.card .cs{font-size:.55rem;position:absolute;top:4px;left:5px;opacity:.7}
+.card:active{transform:translateY(-8px) scale(1.05)}
+.card.csel{transform:translateY(-12px);border-color:var(--orange);box-shadow:0 0 18px rgba(255,107,26,.5)}
+.card-low{background:linear-gradient(145deg,#2C4A6E,#1A3050);color:#7EB8FF}
+.card-mid{background:linear-gradient(145deg,#4A2C6E,#2D1A50);color:#C87EFF}
+.card-high{background:linear-gradient(145deg,#6E2C2C,#501A1A);color:#FF7E7E}
+.card-top{background:linear-gradient(145deg,#6E5A1A,#503A00);color:var(--yellow)}
+.table-area{background:var(--surface2);border-radius:14px;padding:16px;margin-bottom:12px}
+.table-area h3{font-size:.78rem;color:var(--muted);margin-bottom:10px}
+.played-row{display:flex;gap:20px;justify-content:center;align-items:flex-end}
+.played-slot{text-align:center}
+.plabel{font-size:.68rem;color:var(--muted);margin-bottom:5px}
+.card-back{width:56px;height:80px;border-radius:10px;background:repeating-linear-gradient(45deg,#2A1A0E 0,#2A1A0E 4px,#3A2415 4px,#3A2415 8px);border:2px solid var(--surface2);display:flex;align-items:center;justify-content:center;font-size:1.3rem;color:var(--muted)}
+.status{text-align:center;padding:8px;font-size:.85rem;color:var(--yellow);min-height:32px}
+.bets-row,.tricks-row{display:flex;gap:8px;margin-bottom:10px}
+.info-tag{flex:1;background:var(--surface2);border-radius:8px;padding:8px;text-align:center}
+.info-tag .iname{color:var(--muted);font-size:.68rem;margin-bottom:1px}
+.info-tag .ival{font-family:'Righteous',cursive;font-size:1.15rem;color:var(--yellow)}
+.info-tag .ival.hidden{color:var(--muted);font-size:.85rem}
+.overlay{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;padding:20px;animation:fin .2s}
+@keyframes fin{from{opacity:0}to{opacity:1}}
+.obox{background:var(--surface);border:2px solid var(--orange);border-radius:20px;padding:28px;width:100%;max-width:380px;text-align:center;animation:pop .22s cubic-bezier(.34,1.56,.64,1)}
+@keyframes pop{from{transform:scale(.75);opacity:0}to{transform:scale(1);opacity:1}}
+.obox h2{font-family:'Righteous',cursive;font-size:1.5rem;color:var(--yellow);margin-bottom:16px}
+.result-row{display:flex;justify-content:space-between;align-items:center;background:var(--surface2);border-radius:10px;padding:11px 14px;margin-bottom:8px}
+.result-row .rname{font-weight:600;font-size:.95rem}
+.result-row .rdet{font-size:.75rem;color:var(--muted)}
+.badge-ok{background:var(--green);color:#fff;border-radius:20px;padding:3px 10px;font-size:.78rem;font-weight:700}
+.badge-pili{background:var(--red);color:#fff;border-radius:20px;padding:3px 10px;font-size:.78rem;font-weight:700}
+.gover-box{background:var(--surface);border:2px solid var(--yellow);border-radius:22px;padding:32px 24px;width:100%;max-width:380px;text-align:center}
+.gover-box .trophy{font-size:3.5rem;margin-bottom:10px}
+.gover-box h2{font-family:'Righteous',cursive;font-size:1.9rem;color:var(--yellow);margin-bottom:6px}
+.gover-box p{color:var(--muted);margin-bottom:20px}
+#toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#3A2415;color:var(--cream);padding:10px 20px;border-radius:20px;font-size:.85rem;z-index:999;opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap;border:1px solid var(--orange)}
+#toast.show{opacity:1}
+.trick-pop{position:fixed;inset:0;z-index:150;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center}
+.trick-pop-box{background:var(--surface);border:2px solid var(--orange);border-radius:18px;padding:28px 36px;text-align:center;animation:pop .2s cubic-bezier(.34,1.56,.64,1)}
+.trick-pop-box h2{font-family:'Righteous',cursive;font-size:1.7rem;margin-bottom:6px}
+</style>
+</head>
+<body>
+<div id="pepper-bg"></div>
+<div id="app">
+  <div class="logo"><h1>🌶️ PILI PILI</h1><p>Le jeu de plis pimenté</p></div>
+  <div id="screen"><div class="wait-box"><div class="spinner"></div><p style="color:var(--muted)">Connexion…</p></div></div>
+</div>
+<div id="toast"></div>
+
+<script type="module">
+// ── Firebase ──────────────────────────────────────────
+import { initializeApp }       from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, set, get, update, onValue, off, remove }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+const CFG = {
+  apiKey:"AIzaSyDUw9JWEiwHz6tZYv_ljGiYP_FAoOIdc6I",
+  authDomain:"pili-pili-2704c.firebaseapp.com",
+  databaseURL:"https://pili-pili-2704c-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId:"pili-pili-2704c",
+  storageBucket:"pili-pili-2704c.firebasestorage.app",
+  messagingSenderId:"967350216514",
+  appId:"1:967350216514:web:4f2769dfcdb17cc8ffcadb"
+};
+
+const fbApp = initializeApp(CFG);
+const db    = getDatabase(fbApp);
+
+// ── Peppers ───────────────────────────────────────────
+(function(){
+  const bg=document.getElementById('pepper-bg');
+  for(let i=0;i<16;i++){
+    const p=document.createElement('div'); p.className='pepper';
+    p.textContent=['🌶️','🫑','🌿'][i%3];
+    p.style.left=Math.random()*100+'vw';
+    p.style.fontSize=(.8+Math.random())+'rem';
+    p.style.animationDuration=(7+Math.random()*9)+'s';
+    p.style.animationDelay=(-Math.random()*12)+'s';
+    bg.appendChild(p);
+  }
+})();
+
+// ── Toast ─────────────────────────────────────────────
+let toastT;
+function toast(msg){
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.classList.add('show');
+  clearTimeout(toastT); toastT=setTimeout(()=>el.classList.remove('show'),2400);
+}
+
+// ── Render helper ─────────────────────────────────────
+const SC=document.getElementById('screen');
+function html(h){SC.innerHTML=h;}
+
+// ── Game constants ────────────────────────────────────
+const MAX_PILIS=7;
+const MISSIONS=[
+  {id:'normal',  label:'Classique',         desc:'Remportez exactement votre pari.',          icon:'🎯'},
+  {id:'no_tricks',label:'Zéro pli',         desc:'Tout le monde parie 0 pli.',                icon:'🚫'},
+  {id:'blind',   label:'Paris à l\'aveugle',desc:'Les paris restent cachés jusqu\'à la fin.', icon:'🙈'},
+  {id:'double',  label:'Double ou rien',    desc:'Pilis doublés cette manche !',              icon:'💥'},
+  {id:'last_bad',label:'Dernier pli maudit',desc:'Gagner le dernier pli = +1 Pili.',          icon:'👹'},
+];
+const MISSION_SEQ=['normal','no_tricks','blind','normal','double','last_bad','normal','blind','no_tricks','double','normal','last_bad'];
+
+function getMission(round){ return MISSIONS.find(m=>m.id===MISSION_SEQ[(round-1)%MISSION_SEQ.length])||MISSIONS[0]; }
+function cardsPerRound(r){ return r<=6?r+1:13-r; }
+function totalRounds(){ return 12; }
+function shuffle(a){ const b=[...a]; for(let i=b.length-1;i>0;i--){const j=0|Math.random()*(i+1);[b[i],b[j]]=[b[j],b[i]];} return b; }
+function createDeck(){ const d=[]; for(let i=1;i<=55;i++)d.push(i); return shuffle(d); }
+function cardCls(n){ if(n<=14)return'card-low'; if(n<=28)return'card-mid'; if(n<=42)return'card-high'; return'card-top'; }
+
+// ── State ─────────────────────────────────────────────
+let myId=null, roomId=null, localSt=null, unsub=null, selCard=null, selBet=null, betLocked=false;
+
+// ── Rooms ─────────────────────────────────────────────
+function roomRef(){ return ref(db,`rooms/${roomId}`); }
+
+function listenRoom(){
+  if(unsub){ off(roomRef(),'value',unsub); unsub=null; }
+  unsub=onValue(roomRef(), snap=>{
+    if(!snap.exists()) return;
+    localSt=snap.val();
+    dispatch(localSt);
+  });
+}
+
+function dispatch(st){
+  if(st.phase==='waiting')  return onWaiting(st);
+  if(st.phase==='playing')  return onPlaying(st);
+  if(st.phase==='gameover') return onGameOver(st);
+}
+
+// ── LOBBY ─────────────────────────────────────────────
+function showLobby(){
+  html(`
+    <div class="panel">
+      <h2>🏠 Créer une partie</h2>
+      <input type="text" id="cname" placeholder="Ton prénom" maxlength="16">
+      <button class="btn btn-primary" id="cbtn">Créer le salon 🌶️</button>
+    </div>
+    <div class="or">— ou —</div>
+    <div class="panel">
+      <h2>🔗 Rejoindre</h2>
+      <input type="text" id="jname" placeholder="Ton prénom" maxlength="16">
+      <input type="text" id="jcode" placeholder="Code du salon (ex: ABC123)" maxlength="8" style="text-transform:uppercase">
+      <button class="btn btn-secondary" id="jbtn">Rejoindre</button>
+    </div>`);
+  document.getElementById('cbtn').onclick=doCreate;
+  document.getElementById('jbtn').onclick=doJoinByCode;
+}
+
+async function doCreate(){
+  const name=(document.getElementById('cname').value||'').trim();
+  if(!name){toast('Entre ton prénom !');return;}
+  roomId=Math.random().toString(36).slice(2,8).toUpperCase();
+  myId='p1';
+  const st={phase:'waiting',p1:{name,pilis:0},p2:null,round:0,created:Date.now()};
+  await set(roomRef(),st);
+  history.replaceState(null,'','#room-'+roomId);
+  listenRoom();
+}
+
+async function doJoinByCode(){
+  const name=(document.getElementById('jname').value||'').trim();
+  const code=(document.getElementById('jcode').value||'').trim().toUpperCase();
+  if(!name||!code){toast('Remplis les deux champs !');return;}
+  myId='p2';
+  await joinRoom(code,name);
+}
+
+async function joinRoom(code,name){
+  roomId=code;
+  html(`<div class="wait-box"><div class="spinner"></div><p style="color:var(--muted)">Connexion au salon…</p></div>`);
+  const snap=await get(roomRef());
+  if(!snap.exists()){toast('Salon introuvable !');history.replaceState(null,'','#');showLobby();return;}
+  const st=snap.val();
+  if(st.p2&&st.p2.name){toast('Salon complet !');history.replaceState(null,'','#');showLobby();return;}
+  // If no name yet (came from link), ask
+  if(!name){
+    html(`
+      <div class="panel">
+        <h2>👋 Rejoindre ${st.p1.name}</h2>
+        <input type="text" id="lname" placeholder="Ton prénom" maxlength="16">
+        <button class="btn btn-primary" id="lbtn">Rejoindre 🌶️</button>
+      </div>`);
+    document.getElementById('lbtn').onclick=async()=>{
+      const n=(document.getElementById('lname').value||'').trim();
+      if(!n){toast('Entre ton prénom !');return;}
+      await confirmJoin(n);
+    };
+    return;
+  }
+  await confirmJoin(name);
+}
+
+async function confirmJoin(name){
+  await update(roomRef(),{p2:{name,pilis:0}});
+  listenRoom();
+}
+
+// ── WAITING ──────────────────────────────────────────
+function onWaiting(st){
+  if(myId==='p1'){
+    if(st.p2&&st.p2.name){ startGame(st); return; }
+    const link=location.href.split('#')[0]+'#room-'+roomId;
+    html(`
+      <div class="panel">
+        <h2>⏳ En attente…</h2>
+        <div class="wait-box"><div class="spinner"></div><p>Partage ce lien à ta copine :</p></div>
+        <div class="share-box">
+          <span>${link}</span>
+          <button class="btn btn-primary btn-sm" id="copybtn">Copier</button>
+        </div>
+        <div class="or" style="margin-top:14px">— ou donne ce code —</div>
+        <div style="text-align:center;padding:14px">
+          <span style="font-family:'Righteous',cursive;font-size:2.4rem;color:var(--yellow);letter-spacing:4px">${roomId}</span>
+        </div>
+      </div>`);
+    document.getElementById('copybtn').onclick=()=>{
+      navigator.clipboard.writeText(link).catch(()=>{});
+      toast('Lien copié 🌶️');
+    };
+  } else {
+    html(`<div class="wait-box"><div class="spinner"></div><p style="color:var(--muted)">En attente du démarrage…</p></div>`);
+  }
+}
+
+// ── START GAME (p1 only) ──────────────────────────────
+async function startGame(st){
+  if(myId!=='p1') return;
+  const deck=createDeck();
+  const nc=cardsPerRound(1);
+  const mission=getMission(1);
+  await set(roomRef(),{
+    ...st, phase:'playing', round:1, trick:1,
+    mission:mission.id,
+    hands:{p1:deck.slice(0,nc), p2:deck.slice(nc,nc*2)},
+    bets:{p1:null,p2:null}, betsDone:false,
+    tricks:{p1:0,p2:0},
+    played:{p1:null,p2:null},
+    trickHistory:[], roundSummary:null,
+    resolving:false, trickWinner:null, _next:null,
+  });
+}
+
+// ── PLAYING ───────────────────────────────────────────
+function onPlaying(st){
+  // Side effects first (p1 only)
+  if(myId==='p1'){
+    // Both bets placed?
+    if(!st.betsDone && st.bets && st.bets.p1!==null && st.bets.p2!==null){
+      update(roomRef(),{betsDone:true}); return;
+    }
+    // Both cards played?
+    if(!st.resolving && st.betsDone && st.played && st.played.p1!==null && st.played.p2!==null){
+      update(roomRef(),{resolving:true}).then(()=>resolveTrick(st)); return;
+    }
+  }
+  renderGame(st);
+}
+
+function renderGame(st){
+  const me=st[myId], oppId=myId==='p1'?'p2':'p1', opp=st[oppId];
+  const mission=MISSIONS.find(m=>m.id===st.mission)||MISSIONS[0];
+  const myHand=st.hands?[...(st.hands[myId]||[])]:[];
+  const myBet=st.bets?st.bets[myId]:null;
+  const oppBet=st.bets?st.bets[oppId]:null;
+  const myTricks=(st.tricks?st.tricks[myId]:0)||0;
+  const oppTricks=(st.tricks?st.tricks[oppId]:0)||0;
+  const myPlayed=st.played?st.played[myId]:null;
+  const oppPlayed=st.played?st.played[oppId]:null;
+  const nc=cardsPerRound(st.round);
+  const bettingPhase=!st.betsDone;
+  const showOppBet=mission.id!=='blind'||!bettingPhase;
+
+  let status='';
+  if(bettingPhase) status=myBet===null?'📝 À toi de parier !':'⏳ En attente du pari adverse…';
+  else if(st.roundSummary) status='';
+  else status=myPlayed===null?'🃏 Joue une carte !':'⏳ En attente de l\'adversaire…';
+
+  // Bet section
+  let betHTML='';
+  if(bettingPhase){
+    if(myBet!==null){
+      betHTML=`<div class="bet-section"><p>✅ Pari : <strong style="color:var(--yellow)">${myBet}</strong> pli(s) — en attente…</p></div>`;
+    } else if(mission.id==='no_tricks'){
+      betHTML=`<div class="bet-section"><p>🚫 Mission Zéro pli — pari forcé à 0 !</p>
+        <button class="btn btn-primary" id="force0btn">Confirmer 0 pli</button></div>`;
+    } else {
+      // forbidden bet rule
+      let forbidden=-1;
+      if(oppBet!==null){ const f=nc-oppBet; if(f>=0&&f<=nc) forbidden=f; }
+      let btns='';
+      for(let i=0;i<=nc;i++){
+        const dis=i===forbidden?'disabled':'';
+        btns+=`<button class="bet-btn${selBet===i?' selected':''}" ${dis} data-bet="${i}">${i}</button>`;
+      }
+      betHTML=`<div class="bet-section">
+        <p>Combien de plis vas-tu remporter ?${forbidden>=0?` <span style="color:var(--red)">(${forbidden} interdit)</span>`:''}</p>
+        <div class="bet-options">${btns}</div>
+        <button class="btn btn-primary" id="confirmbetbtn" ${selBet===null?'disabled':''}>Confirmer mon pari</button>
+      </div>`;
+    }
+  }
+
+  // Hand section
+  let handHTML='';
+  if(!bettingPhase && !st.roundSummary){
+    if(myPlayed!==null){
+      handHTML=`<div class="bet-section"><p>⏳ Carte jouée, en attente…</p></div>`;
+    } else {
+      const cards=myHand.map(n=>`<div class="card ${cardCls(n)}${selCard===n?' csel':''}" data-card="${n}"><span class="cs">🌶️</span>${n}</div>`).join('');
+      handHTML=`<div>
+        <div class="hand-label">Ta main (${myHand.length} cartes) :</div>
+        <div class="hand">${cards}</div>
+        <button class="btn btn-primary" id="playcardBtn" ${selCard===null?'disabled':''}>Jouer cette carte ▶</button>
+      </div>`;
+    }
+  }
+
+  // Bets & tricks display (during play phase)
+  let statsHTML='';
+  if(!bettingPhase){
+    statsHTML=`
+      <div class="bets-row">
+        <div class="info-tag"><div class="iname">🫵 ${me.name} — pari</div><div class="ival">${myBet!==null?myBet:'?'}</div></div>
+        <div class="info-tag"><div class="iname">👤 ${opp.name} — pari</div><div class="ival ${showOppBet?'':'hidden'}">${showOppBet?(oppBet!==null?oppBet:'?'):'🙈'}</div></div>
+      </div>
+      <div class="tricks-row">
+        <div class="info-tag"><div class="iname">Mes plis</div><div class="ival" style="color:var(--orange)">${myTricks}</div></div>
+        <div class="info-tag"><div class="iname">Ses plis</div><div class="ival" style="color:var(--muted)">${oppTricks}</div></div>
+      </div>`;
+  }
+
+  // Round summary overlay
+  let summaryHTML='';
+  if(st.roundSummary){
+    const s=st.roundSummary;
+    const myOk=s[myId].pilis===0, oppOk=s[oppId].pilis===0;
+    const canNext=myId==='p1'&&!!st._next;
+    summaryHTML=`
+      <div class="overlay">
+        <div class="obox">
+          <h2>🌶️ Fin manche ${st.round}</h2>
+          <div class="result-row">
+            <div><div class="rname">🫵 ${me.name}</div><div class="rdet">Pari ${s[myId].bet} • Plis ${s[myId].got}</div></div>
+            <span class="${myOk?'badge-ok':'badge-pili'}">${myOk?'✅ Parfait':'+'+s[myId].pilis+' 🌶️'}</span>
+          </div>
+          <div class="result-row">
+            <div><div class="rname">👤 ${opp.name}</div><div class="rdet">Pari ${s[oppId].bet} • Plis ${s[oppId].got}</div></div>
+            <span class="${oppOk?'badge-ok':'badge-pili'}">${oppOk?'✅ Parfait':'+'+s[oppId].pilis+' 🌶️'}</span>
+          </div>
+          ${canNext?`<button class="btn btn-primary" style="margin-top:14px" id="nextbtn">Manche suivante →</button>`:''}
+          ${myId!=='p1'?`<p style="color:var(--muted);margin-top:14px;font-size:.85rem">⏳ En attente du joueur 1…</p>`:''}
+        </div>
+      </div>`;
+  }
+
+  html(`
+    <div class="scores">
+      <div class="score-card me"><div class="sname">🫵 ${me.name}</div><div class="spilis">${me.pilis} <span style="font-size:.9rem">🌶️</span></div></div>
+      <div class="score-card">    <div class="sname">👤 ${opp.name}</div><div class="spilis">${opp.pilis} <span style="font-size:.9rem">🌶️</span></div></div>
+    </div>
+    <div class="mission-banner"><span class="micon">${mission.icon}</span><div><strong>${mission.label}</strong><br><small>${mission.desc}</small></div></div>
+    <div class="round-info">
+      <span class="tag">Manche <strong>${st.round}</strong>/${totalRounds()}</span>
+      <span class="tag">Pli <strong>${st.trick}</strong>/${nc}</span>
+      <span class="tag">${nc} cartes</span>
+    </div>
+    ${statsHTML}
+    <div class="table-area">
+      <h3>🃏 Table</h3>
+      <div class="played-row">
+        <div class="played-slot"><div class="plabel">🫵 ${me.name}</div>${myPlayed!==null?`<div class="card ${cardCls(myPlayed)}" style="cursor:default"><span class="cs">🌶️</span>${myPlayed}</div>`:'<div class="card-back">?</div>'}</div>
+        <div class="played-slot"><div class="plabel">👤 ${opp.name}</div>${oppPlayed!==null?`<div class="card ${cardCls(oppPlayed)}" style="cursor:default"><span class="cs">🌶️</span>${oppPlayed}</div>`:'<div class="card-back">?</div>'}</div>
+      </div>
+    </div>
+    <div class="status">${status}</div>
+    ${betHTML}
+    ${handHTML}
+    ${summaryHTML}
+  `);
+
+  // Bind events
+  document.querySelectorAll('.bet-btn:not([disabled])').forEach(b=>{
+    b.addEventListener('click',()=>{
+      selBet=parseInt(b.dataset.bet);
+      document.querySelectorAll('.bet-btn').forEach(x=>x.classList.remove('selected'));
+      b.classList.add('selected');
+      const cb=document.getElementById('confirmbetbtn');
+      if(cb) cb.disabled=false;
+    });
+  });
+  const cbtn=document.getElementById('confirmbetbtn');
+  if(cbtn) cbtn.addEventListener('click',()=>{ if(selBet!==null) placeBet(selBet); });
+  const f0=document.getElementById('force0btn');
+  if(f0) f0.addEventListener('click',()=>placeBet(0));
+  document.querySelectorAll('.card').forEach(c=>{
+    c.addEventListener('click',()=>{
+      selCard=parseInt(c.dataset.card);
+      document.querySelectorAll('.card').forEach(x=>x.classList.remove('csel'));
+      c.classList.add('csel');
+      const pb=document.getElementById('playcardBtn');
+      if(pb) pb.disabled=false;
+    });
+  });
+  const pb=document.getElementById('playcardBtn');
+  if(pb) pb.addEventListener('click',doPlayCard);
+  const nb=document.getElementById('nextbtn');
+  if(nb) nb.addEventListener('click',doNextRound);
+}
+
+async function placeBet(n){
+  selBet=null;
+  await update(ref(db,`rooms/${roomId}/bets`),{[myId]:n});
+}
+
+async function doPlayCard(){
+  if(selCard===null) return;
+  const card=selCard; selCard=null;
+  const hand=(localSt.hands[myId]||[]).filter(c=>c!==card);
+  await update(roomRef(),{[`played/${myId}`]:card,[`hands/${myId}`]:hand});
+}
+
+// ── RESOLVE TRICK (p1 only) ──────────────────────────
+async function resolveTrick(st){
+  const p1c=st.played.p1, p2c=st.played.p2;
+  const winner=p1c>p2c?'p1':'p2';
+  const newTricks={p1:(st.tricks.p1||0)+(winner==='p1'?1:0), p2:(st.tricks.p2||0)+(winner==='p2'?1:0)};
+  const nc=cardsPerRound(st.round);
+  const hist=[...(st.trickHistory||[]),{p1:p1c,p2:p2c,winner}];
+  const isLast=st.trick>=nc;
+
+  if(!isLast){
+    await update(roomRef(),{
+      tricks:newTricks, played:{p1:null,p2:null},
+      trick:st.trick+1, trickHistory:hist,
+      trickWinner:winner, resolving:false,
+    });
+    showTrickPop(winner,st);
+    return;
+  }
+
+  // End of round
+  const summary=calcSummary(st,newTricks,hist);
+  const np1=((st.p1.pilis)||0)+summary.p1.pilis;
+  const np2=((st.p2.pilis)||0)+summary.p2.pilis;
+  const gameOver=np1>=MAX_PILIS||np2>=MAX_PILIS;
+
+  if(gameOver){
+    const gw=np1<np2?'p1':(np2<np1?'p2':'draw');
+    await update(roomRef(),{
+      tricks:newTricks, played:{p1:null,p2:null}, trickHistory:hist,
+      roundSummary:summary, 'p1/pilis':np1, 'p2/pilis':np2,
+      phase:'gameover', gameWinner:gw, resolving:false,
+    });
+    return;
+  }
+
+  const nr=st.round+1;
+  const nMission=getMission(nr);
+  const deck=createDeck(); const nc2=cardsPerRound(nr);
+  await update(roomRef(),{
+    tricks:newTricks, played:{p1:null,p2:null}, trickHistory:hist,
+    roundSummary:summary, 'p1/pilis':np1, 'p2/pilis':np2, resolving:false,
+    _next:{round:nr,mission:nMission.id,h1:deck.slice(0,nc2),h2:deck.slice(nc2,nc2*2)},
+  });
+}
+
+function calcSummary(st,tricks,hist){
+  const m=st.mission, mult=m==='double'?2:1, lastBad=m==='last_bad';
+  function pilis(id){
+    let p=Math.abs(st.bets[id]-tricks[id])*mult;
+    if(lastBad&&hist.length>0&&hist[hist.length-1].winner===id) p+=1;
+    return p;
+  }
+  return{p1:{bet:st.bets.p1,got:tricks.p1,pilis:pilis('p1')},p2:{bet:st.bets.p2,got:tricks.p2,pilis:pilis('p2')}};
+}
+
+function showTrickPop(winner,st){
+  const isMe=winner===myId;
+  const name=isMe?st[myId].name:st[winner].name;
+  const div=document.createElement('div'); div.className='trick-pop';
+  div.innerHTML=`<div class="trick-pop-box"><h2>${isMe?'🎉 Tu remportes':'😅 '+name+' remporte'}</h2><p style="color:var(--muted)">ce pli !</p></div>`;
+  document.body.appendChild(div);
+  setTimeout(()=>div.remove(),1300);
+}
+
+async function doNextRound(){
+  if(myId!=='p1'||!localSt._next) return;
+  const n=localSt._next;
+  await update(roomRef(),{
+    round:n.round, trick:1, mission:n.mission,
+    'hands/p1':n.h1, 'hands/p2':n.h2,
+    bets:{p1:null,p2:null}, betsDone:false,
+    tricks:{p1:0,p2:0}, played:{p1:null,p2:null},
+    trickHistory:[], roundSummary:null,
+    trickWinner:null, resolving:false, _next:null,
+  });
+}
+
+// ── GAME OVER ─────────────────────────────────────────
+function onGameOver(st){
+  const gw=st.gameWinner, isMe=gw===myId, isDraw=gw==='draw';
+  const me=st[myId], opp=st[myId==='p1'?'p2':'p1'];
+  html(`
+    <div class="overlay" style="background:rgba(0,0,0,.92)">
+      <div class="gover-box">
+        <div class="trophy">${isDraw?'🤝':isMe?'🏆':'💀'}</div>
+        <h2>${isDraw?'Égalité !':isMe?'Victoire !':'Défaite !'}</h2>
+        <p>${isDraw?'Revanche ?':isMe?`Bravo ${me.name} 🌶️`:`${st[gw==='p1'?'p1':'p2'].name} remporte la partie !`}</p>
+        <div class="scores" style="margin:16px 0">
+          <div class="score-card ${myId==='p1'?'me':''}"><div class="sname">${st.p1.name}</div><div class="spilis">${st.p1.pilis} 🌶️</div></div>
+          <div class="score-card ${myId==='p2'?'me':''}"><div class="sname">${st.p2.name}</div><div class="spilis">${st.p2.pilis} 🌶️</div></div>
+        </div>
+        <button class="btn btn-primary" id="replaybtn">Rejouer 🌶️</button>
+        <button class="btn btn-secondary" style="margin-top:8px" id="homebtn">Accueil</button>
+      </div>
+    </div>`);
+  document.getElementById('replaybtn').addEventListener('click', doReplay);
+  document.getElementById('homebtn').addEventListener('click', doHome);
+}
+
+async function doReplay(){
+  if(myId!=='p1'){toast('Seul le créateur peut relancer !');return;}
+  const p1n=localSt.p1.name, p2n=localSt.p2.name;
+  const st={phase:'waiting',p1:{name:p1n,pilis:0},p2:{name:p2n,pilis:0},round:0,created:Date.now()};
+  await set(roomRef(),st);
+  await startGame(st);
+}
+
+function doHome(){
+  if(unsub){off(roomRef(),'value',unsub);unsub=null;}
+  history.replaceState(null,'','#');
+  myId=null;roomId=null;localSt=null;selCard=null;selBet=null;
+  showLobby();
+}
+
+// ── BOOT ──────────────────────────────────────────────
+(function boot(){
+  const hash=location.hash.slice(1);
+  if(hash.startsWith('room-')){
+    myId='p2';
+    roomId=hash.replace('room-','');
+    joinRoom(roomId,null); // listenRoom called inside joinRoom->confirmJoin
+  } else {
+    showLobby();
+  }
+})();
+</script>
+</body>
+</html>
