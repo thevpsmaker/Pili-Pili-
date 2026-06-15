@@ -63,6 +63,7 @@ input[type=text]::placeholder{color:var(--muted)}
 .card-mid{background:linear-gradient(145deg,#4A2C6E,#2D1A50);color:#C87EFF}
 .card-high{background:linear-gradient(145deg,#6E2C2C,#501A1A);color:#FF7E7E}
 .card-top{background:linear-gradient(145deg,#6E5A1A,#503A00);color:var(--yellow)}
+.card-joker{background:linear-gradient(145deg,#1A1A1A,#000);color:#fff;border-color:var(--yellow);box-shadow:0 0 14px rgba(255,217,61,.4)}
 .table-area{background:var(--surface2);border-radius:14px;padding:16px;margin-bottom:12px}
 .table-area h3{font-size:.78rem;color:var(--muted);margin-bottom:10px}
 .played-row{display:flex;gap:20px;justify-content:center;align-items:flex-end}
@@ -150,25 +151,38 @@ const SC=document.getElementById('screen');
 function html(h){SC.innerHTML=h;}
 
 // ── Game constants ────────────────────────────────────
+// Seuils officiels : la partie se termine quand un joueur atteint ce nombre.
+// Le joueur avec le MOINS de Pilis gagne (règle officielle Pili Pili).
 const MAX_PILIS=7;
 const MISSIONS=[
-  {id:'normal',  label:'Classique',         desc:'Remportez exactement votre pari.',          icon:'🎯'},
-  {id:'no_tricks',label:'Zéro pli',         desc:'Tout le monde parie 0 pli.',                icon:'🚫'},
-  {id:'blind',   label:'Paris à l\'aveugle',desc:'Les paris restent cachés jusqu\'à la fin.', icon:'🙈'},
-  {id:'double',  label:'Double ou rien',    desc:'Pilis doublés cette manche !',              icon:'💥'},
-  {id:'last_bad',label:'Dernier pli maudit',desc:'Gagner le dernier pli = +1 Pili.',          icon:'👹'},
+  {id:'normal',     label:'Classique',         desc:'Pari libre — la somme ne doit pas égaler le nombre de cartes.', icon:'🎯'},
+  {id:'no_tricks',  label:'Zéro pli',          desc:'Tout le monde parie 0 pli.',                                   icon:'🚫'},
+  {id:'blind',      label:'Paris à l\'aveugle',desc:'Les paris restent cachés jusqu\'à la fin des plis.',           icon:'🙈'},
+  {id:'double',     label:'Double ou rien',    desc:'Pilis doublés cette manche !',                                 icon:'💥'},
+  {id:'last_bad',   label:'Dernier pli maudit',desc:'Gagner le dernier pli = +1 Pili.',                            icon:'👹'},
+  {id:'swap',       label:'Échange de cartes', desc:'Avant les paris, échangez 1 carte avec l\'adversaire.',        icon:'🔄'},
+  {id:'joker_open', label:'Joker révélé',      desc:'Le Joker est posé face visible sur la table avant les plis.',  icon:'🃏'},
 ];
-const MISSION_SEQ=['normal','no_tricks','blind','normal','double','last_bad','normal','blind','no_tricks','double','normal','last_bad'];
+const MISSION_SEQ=['normal','no_tricks','blind','swap','normal','double','last_bad','joker_open','normal','blind','no_tricks','double'];
 
 function getMission(round){ return MISSIONS.find(m=>m.id===MISSION_SEQ[(round-1)%MISSION_SEQ.length])||MISSIONS[0]; }
 function cardsPerRound(r){ return r<=6?r+1:13-r; }
 function totalRounds(){ return 12; }
 function shuffle(a){ const b=[...a]; for(let i=b.length-1;i>0;i--){const j=0|Math.random()*(i+1);[b[i],b[j]]=[b[j],b[i]];} return b; }
-function createDeck(){ const d=[]; for(let i=1;i<=55;i++)d.push(i); return shuffle(d); }
-function cardCls(n){ if(n<=14)return'card-low'; if(n<=28)return'card-mid'; if(n<=42)return'card-high'; return'card-top'; }
+function createDeck(){
+  // 55 cartes numérotées 1..55 + 1 Joker (56) — règle officielle
+  const d=[]; for(let i=1;i<=55;i++)d.push(i); d.push(56); return shuffle(d);
+}
+function cardCls(n){
+  if(n===56) return 'card-joker';
+  if(n<=14) return 'card-low';
+  if(n<=28) return 'card-mid';
+  if(n<=42) return 'card-high';
+  return 'card-top';
+}
 
 // ── State ─────────────────────────────────────────────
-let myId=null, roomId=null, localSt=null, unsub=null, selCard=null, selBet=null, betLocked=false;
+let myId=null, roomId=null, localSt=null, unsub=null, selCard=null, selBet=null;
 
 // ── Rooms ─────────────────────────────────────────────
 function roomRef(){ return ref(db,`rooms/${roomId}`); }
@@ -313,9 +327,13 @@ function onPlaying(st){
       update(roomRef(),{betsDone:true});
       return;
     }
-    // Both cards played → resolve trick
+    // Both cards played → resolve trick. On relit l'état frais depuis Firebase
+    // (localSt peut être en retard à cause d'un double-clic quasi-simultané).
     if(!st.resolving && st.betsDone && st.played && st.played.p1!==null && st.played.p2!==null){
-      update(roomRef(),{resolving:true}).then(()=>resolveTrick(st));
+      update(roomRef(),{resolving:true}).then(async()=>{
+        const fresh=await get(roomRef());
+        if(fresh.exists()) resolveTrick(fresh.val());
+      });
       return;
     }
   }
@@ -349,16 +367,26 @@ function renderGame(st){
       betHTML=`<div class="bet-section"><p>🚫 Mission Zéro pli — pari forcé à 0 !</p>
         <button class="btn btn-primary" id="force0btn">Confirmer 0 pli</button></div>`;
     } else {
-      // forbidden bet rule
+      // Règles officielles Pili Pili :
+      //  1. La somme des deux paris ne doit JAMAIS égaler le nombre de cartes distribuées.
+      //  2. (Variante) on ne peut pas parier le complément exact du pari adverse.
       let forbidden=-1;
-      if(oppBet!==null){ const f=nc-oppBet; if(f>=0&&f<=nc) forbidden=f; }
+      if(oppBet!==null){
+        const f=nc-oppBet; if(f>=0&&f<=nc) forbidden=f;
+      }
       let btns='';
       for(let i=0;i<=nc;i++){
-        const dis=i===forbidden?'disabled':'';
+        // Bloque le pari qui rendrait la somme == nc
+        let blockSum=false;
+        if(oppBet!==null && (i+oppBet)===nc) blockSum=true;
+        const dis=(i===forbidden||blockSum)?'disabled':'';
         btns+=`<button class="bet-btn${selBet===i?' selected':''}" ${dis} data-bet="${i}">${i}</button>`;
       }
       betHTML=`<div class="bet-section">
-        <p>Combien de plis vas-tu remporter ?${forbidden>=0?` <span style="color:var(--red)">(${forbidden} interdit)</span>`:''}</p>
+        <p>Combien de plis vas-tu remporter ?<br>
+          <span style="color:var(--muted);font-size:.78rem">Règle : la somme des 2 paris ≠ ${nc}.</span>
+          ${forbidden>=0?` <span style="color:var(--red);font-size:.78rem">(${forbidden} interdit)</span>`:''}
+        </p>
         <div class="bet-options">${btns}</div>
         <button class="btn btn-primary" id="confirmbetbtn" ${selBet===null?'disabled':''}>Confirmer mon pari</button>
       </div>`;
@@ -371,7 +399,10 @@ function renderGame(st){
     if(myPlayed!==null){
       handHTML=`<div class="bet-section"><p>⏳ Carte jouée, en attente…</p></div>`;
     } else {
-      const cards=myHand.map(n=>`<div class="card ${cardCls(n)}${selCard===n?' csel':''}" data-card="${n}"><span class="cs">🌶️</span>${n}</div>`).join('');
+      const cards=myHand.map(n=>{
+      const lbl=n===56?'🃏J':n;
+      return `<div class="card ${cardCls(n)}${selCard===n?' csel':''}" data-card="${n}"><span class="cs">🌶️</span>${lbl}</div>`;
+    }).join('');
       handHTML=`<div>
         <div class="hand-label">Ta main (${myHand.length} cartes) :</div>
         <div class="hand">${cards}</div>
@@ -433,8 +464,8 @@ function renderGame(st){
     <div class="table-area">
       <h3>🃏 Table</h3>
       <div class="played-row">
-        <div class="played-slot"><div class="plabel">🫵 ${me.name}</div>${myPlayed!==null?`<div class="card ${cardCls(myPlayed)}" style="cursor:default"><span class="cs">🌶️</span>${myPlayed}</div>`:'<div class="card-back">?</div>'}</div>
-        <div class="played-slot"><div class="plabel">👤 ${opp.name}</div>${oppPlayed!==null?`<div class="card ${cardCls(oppPlayed)}" style="cursor:default"><span class="cs">🌶️</span>${oppPlayed}</div>`:'<div class="card-back">?</div>'}</div>
+        <div class="played-slot"><div class="plabel">🫵 ${me.name}</div>${myPlayed!==null?(()=>{const lbl=myPlayed===56?'🃏J':myPlayed;return `<div class="card ${cardCls(myPlayed)}" style="cursor:default"><span class="cs">🌶️</span>${lbl}</div>`;})():'<div class="card-back">?</div>'}</div>
+        <div class="played-slot"><div class="plabel">👤 ${opp.name}</div>${oppPlayed!==null?(()=>{const lbl=oppPlayed===56?'🃏J':oppPlayed;return `<div class="card ${cardCls(oppPlayed)}" style="cursor:default"><span class="cs">🌶️</span>${lbl}</div>`;})():'<div class="card-back">?</div>'}</div>
       </div>
     </div>
     <div class="status">${status}</div>
@@ -457,10 +488,10 @@ function renderGame(st){
   if(cbtn) cbtn.addEventListener('click',()=>{ if(selBet!==null) placeBet(selBet); });
   const f0=document.getElementById('force0btn');
   if(f0) f0.addEventListener('click',()=>placeBet(0));
-  document.querySelectorAll('.card').forEach(c=>{
+  document.querySelectorAll('.hand .card').forEach(c=>{
     c.addEventListener('click',()=>{
       selCard=parseInt(c.dataset.card);
-      document.querySelectorAll('.card').forEach(x=>x.classList.remove('csel'));
+      document.querySelectorAll('.hand .card').forEach(x=>x.classList.remove('csel'));
       c.classList.add('csel');
       const pb=document.getElementById('playcardBtn');
       if(pb) pb.disabled=false;
@@ -473,21 +504,48 @@ function renderGame(st){
 }
 
 async function placeBet(n){
+  // Règle officielle : la somme des paris ne doit JAMAIS être égale au nombre de cartes distribuées
+  // (il faut toujours un perdant). On bloque côté client + on re-vérifie côté p1.
+  const st=localSt; if(!st) return;
+  const oppId=myId==='p1'?'p2':'p1';
+  const oppBet=st.bets?st.bets[oppId]:null;
+  const nc=cardsPerRound(st.round);
+  if(oppBet!==null && (n+oppBet)===nc){
+    toast(`🌶️ Règle officielle : la somme des paris (${n+oppBet}) ne peut pas égaler ${nc} !`);
+    selBet=null; return;
+  }
+  // Règle officielle supplémentaire : on ne peut pas parier le complément du pari adverse
+  // (variante « pari interdit ») — on conserve cette règle déjà présente.
+  if(oppBet!==null){
+    const f=nc-oppBet; if(f>=0&&f<=nc && f===n){
+      toast(`🌶️ Pari interdit : ${n} complémentaire de l'adversaire.`);
+      selBet=null; return;
+    }
+  }
   selBet=null;
   await update(ref(db,`rooms/${roomId}/bets`),{[myId]:n});
 }
 
 async function doPlayCard(){
   if(selCard===null) return;
+  const st=localSt; if(!st) return;
+  // Garde-fous : on est en phase de pli, on n'a pas déjà joué, la carte est dans notre main
+  if(st.betsDone!==true) return;
+  if(st.played && st.played[myId]!==null) return;
   const card=selCard; selCard=null;
-  const hand=(localSt.hands[myId]||[]).filter(c=>c!==card);
+  const hand=(st.hands[myId]||[]).filter(c=>c!==card);
   await update(roomRef(),{[`played/${myId}`]:card,[`hands/${myId}`]:hand});
 }
 
 // ── RESOLVE TRICK (p1 only) ──────────────────────────
 async function resolveTrick(st){
   const p1c=st.played.p1, p2c=st.played.p2;
-  const winner=p1c>p2c?'p1':'p2';
+  // Règle officielle : la carte la plus forte remporte le pli (couleur unique dans Pili Pili).
+  // Le Joker (56) bat n'importe quelle autre carte SAUF si la mission en dispose autrement.
+  let winner;
+  if(p1c===56 && p2c!==56) winner='p1';
+  else if(p2c===56 && p1c!==56) winner='p2';
+  else winner=p1c>p2c?'p1':'p2';
   const newTricks={p1:(st.tricks.p1||0)+(winner==='p1'?1:0), p2:(st.tricks.p2||0)+(winner==='p2'?1:0)};
   const nc=cardsPerRound(st.round);
   const hist=[...(st.trickHistory||[]),{p1:p1c,p2:p2c,winner}];
@@ -503,14 +561,16 @@ async function resolveTrick(st){
     return;
   }
 
-  // End of round
+  // Fin de manche
   const summary=calcSummary(st,newTricks,hist);
   const np1=((st.p1.pilis)||0)+summary.p1.pilis;
   const np2=((st.p2.pilis)||0)+summary.p2.pilis;
+  // Règle officielle : la partie s'arrête dès qu'un joueur atteint le seuil.
+  // Le GAGNANT est le joueur qui a le MOINS de Pilis à ce moment-là.
   const gameOver=np1>=MAX_PILIS||np2>=MAX_PILIS;
 
   if(gameOver){
-    const gw=np1<np2?'p1':(np2<np1?'p2':'draw');
+    const gw=np1<=np2?'p1':(np2<np1?'p2':'draw');
     await update(roomRef(),{
       tricks:newTricks, played:{p1:null,p2:null}, trickHistory:hist,
       roundSummary:summary, 'p1/pilis':np1, 'p2/pilis':np2,
@@ -570,7 +630,7 @@ function onGameOver(st){
       <div class="gover-box">
         <div class="trophy">${isDraw?'🤝':isMe?'🏆':'💀'}</div>
         <h2>${isDraw?'Égalité !':isMe?'Victoire !':'Défaite !'}</h2>
-        <p>${isDraw?'Revanche ?':isMe?`Bravo ${me.name} 🌶️`:`${st[gw==='p1'?'p1':'p2'].name} remporte la partie !`}</p>
+        <p>${isDraw?'Égalité parfaite !':isMe?`Bravo ${me.name} 🌶️ — tu as le moins de Pilis !`:`${st[gw==='p1'?'p1':'p2'].name} a le moins de Pilis et remporte la partie !`}</p>
         <div class="scores" style="margin:16px 0">
           <div class="score-card ${myId==='p1'?'me':''}"><div class="sname">${st.p1.name}</div><div class="spilis">${st.p1.pilis} 🌶️</div></div>
           <div class="score-card ${myId==='p2'?'me':''}"><div class="sname">${st.p2.name}</div><div class="spilis">${st.p2.pilis} 🌶️</div></div>
