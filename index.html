@@ -303,18 +303,22 @@ async function startGame(st){
 
 // ── PLAYING ───────────────────────────────────────────
 function onPlaying(st){
-  // Side effects first (p1 only)
+  // Always render first so both players see their UI
+  renderGame(st);
+
+  // Then p1 handles server-side transitions (no return — render already done)
   if(myId==='p1'){
-    // Both bets placed?
+    // Both bets placed → unlock play phase
     if(!st.betsDone && st.bets && st.bets.p1!==null && st.bets.p2!==null){
-      update(roomRef(),{betsDone:true}); return;
+      update(roomRef(),{betsDone:true});
+      return;
     }
-    // Both cards played?
+    // Both cards played → resolve trick
     if(!st.resolving && st.betsDone && st.played && st.played.p1!==null && st.played.p2!==null){
-      update(roomRef(),{resolving:true}).then(()=>resolveTrick(st)); return;
+      update(roomRef(),{resolving:true}).then(()=>resolveTrick(st));
+      return;
     }
   }
-  renderGame(st);
 }
 
 function renderGame(st){
